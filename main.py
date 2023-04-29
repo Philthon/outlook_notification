@@ -92,7 +92,8 @@ def show_notification(meeting):
         )
         button.pack(pady=10)
 
-    window.after(500, lambda: play_sound(window, meeting))
+    if play_audio == True:
+        window.after(500, lambda: play_sound(window, meeting))
 
     window.mainloop()
 
@@ -106,18 +107,29 @@ end = now + datetime.timedelta(minutes=25)
 items = calendar.Items
 items.IncludeRecurrences = True
 items.Sort("[Start]")
-items = items.Restrict(
+items_future = items.Restrict(
     "[Start] >= '{0}' AND [Start] <= '{1}'".format(
         start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M")
     )
 )
+
+items_current = items.Restrict(
+    "[Start] <= '{0}' AND [End] >= '{1}'".format(
+        now.strftime("%m/%d/%Y %H:%M"), now.strftime("%m/%d/%Y %H:%M")
+    )
+)
+
+global play_audio
+play_audio = True
+for item_current in items_current:
+    play_audio = False
+
 global meeting
 meeting = None
-for item in items:
+for item in items_future:
     meeting = item
     break
 
 if meeting:
     icon_path = os.getcwd() + "\\icon.ico"
-
     threading.Thread(target=show_notification(meeting)).start()
