@@ -16,34 +16,31 @@ def open_meeting_link():
 def change_bg(window, color):
     window.configure(bg=color)
     subject_label.configure(bg=color)
-    location_label.configure(bg=color)
+    meeting_label.configure(bg=color)
     if color == "#FFFFFF":
-        button.configure(bg="#E21239")
+        button.configure(bg="#E21239", fg="#FFFFFF")
     if color == "#E21239":
         button.configure(bg="#FFFFFF")
 
 
-def play_sound(window, meeting):
-    # credits: Sound Effect by https://pixabay.com/users/universfield-28281460/?utm_source=link-attribution&amp;\
-    # utm_medium=referral&amp;utm_campaign=music&amp;utm_content=143029
+def handle_pop_up(window, meeting, play_audio):
     sound_path = os.getcwd() + "\\sound.mp3"
     now = datetime.datetime.now().replace(tzinfo=None)
-    meeting_start = meeting.Start
     meeting_start = datetime.datetime.strptime(
-        str(meeting_start), "%Y-%m-%d %H:%M:%S%z"
+        str(meeting.Start), "%Y-%m-%d %H:%M:%S%z"
     )
     meeting_start = meeting_start.replace(tzinfo=None)
-    playsound(sound_path)
-    if meeting_start < now + datetime.timedelta(minutes=1):
-        playsound(sound_path)
-        window.after(500, lambda: play_sound(window, meeting))
+    if meeting_start <= now + datetime.timedelta(minutes=1):
+        if play_audio is True:
+            playsound(sound_path)
         colors = ["#FFFFFF", "#E21239"]
         color = colors[0]
         if window.cget("bg") == colors[0]:
             color = colors[1]
         if window.cget("bg") == colors[1]:
             color = colors[0]
-        window.after(100, lambda: change_bg(window, color))
+    window.after(100, lambda: change_bg(window, color))
+    window.after(300000, lambda: window.destroy())
 
 
 def show_notification(meeting):
@@ -69,11 +66,14 @@ def show_notification(meeting):
     )
     subject_label.pack(pady=10)
 
-    global location_label
-    location_label = Label(
-        window, text=meeting.Subject, font=("Roboto", 12), background="white"
+    global meeting_label
+    location_text = meeting.Subject
+    if len(location_text) > 35:
+        location_text = location_text[:35] + "..."
+    meeting_label = Label(
+        window, text=location_text, font=("Roboto", 12), background="white"
     )
-    location_label.pack()
+    meeting_label.pack()
 
     if meeting.Location:
         global button
@@ -92,8 +92,10 @@ def show_notification(meeting):
         )
         button.pack(pady=10)
 
-    if play_audio == True:
-        window.after(500, lambda: play_sound(window, meeting))
+    if play_audio is True:
+        playsound(os.getcwd() + "\\sound.mp3")
+
+    window.after(60000, lambda: handle_pop_up(window, meeting, play_audio))
 
     window.mainloop()
 
@@ -131,5 +133,5 @@ for item in items_future:
     break
 
 if meeting:
-    icon_path = os.getcwd() + "\\icon.ico"
+    icon_path = os.getcwd() + "\\phone.ico"
     threading.Thread(target=show_notification(meeting)).start()

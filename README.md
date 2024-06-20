@@ -12,3 +12,7 @@ pip install -r requirements.txt
 2. Set up venv and install requirements
 3. Test the script
 4. Create a scheduled task with Windows Task Scheduler to run the script every 10 minutes
+
+## Credits
+The icon used in the notification is from [flaticon](https://www.flaticon.com/free-icons/phone)
+Sound Effect by [pixabay](https://pixabay.com/users/universfield-28281460)
